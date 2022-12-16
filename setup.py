@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name='mkdocs-fastsearch',
-    version='0.1.2beta1',
+    version='0.1.2beta2',
     author='Yinan Qin',
     author_email='ganyuanzhen@game.com',
     packages=['mkdocs_fastsearch'],
