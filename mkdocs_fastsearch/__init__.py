@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 from mkdocs import utils
 from mkdocs.config import base
 from mkdocs.config import config_options as c
-from mkdocs.contrib.search.search_index import SearchIndex
+from .search_index import SearchIndex
 from mkdocs.plugins import BasePlugin
 
 log = logging.getLogger(__name__)
@@ -63,38 +63,38 @@ class SearchPlugin(BasePlugin):
         if not ('search_index_only' in config['theme'] and config['theme']['include_search_page']):
             path = os.path.join(base_path, 'templates')
             config['theme'].dirs.append(path)
-            if 'search/main.js' not in config.extra_javascript:
+            if 'search/main.js' not in config['extra_javascript']:
                  config['extra_javascript'].append('search/main.js')
         
         return config
 
-    def on_pre_build(self, config, **kwargs) -> None:
+    def on_pre_build(self, config, **kwargs):
         "Create search index instance for later use."
         self.search_index = SearchIndex(**self.config)
 
-    def on_page_context(self, context: Dict[str, Any], **kwargs) -> None:
+    def on_page_context(self, context, **kwargs):
         "Add page to search index."
         self.search_index.add_entry_from_context(context['page'])
 
     def on_post_build(self, config, **kwargs) -> None:
         "Build search index."
-        output_base_path = os.path.join(config.site_dir, 'search')
+        output_base_path = os.path.join(config['site_dir'], 'search')
         search_index = self.search_index.generate_search_index()
         json_output_path = os.path.join(output_base_path, 'search_index.json')
         utils.write_file(search_index.encode('utf-8'), json_output_path)
 
-        assert self.config.lang is not None
-        if not ('search_index_only' in config.theme and config.theme['search_index_only']):
+        assert self.config['lang'] is not None
+        if not ('search_index_only' in config['theme'] and config['theme']['search_index_only']):
             # Include language support files in output. Copy them directly
             # so that only the needed files are included.
             files = []
-            if len(self.config.lang) > 1 or 'en' not in self.config.lang:
+            if len(self.config['lang']) > 1 or 'en' not in self.config['lang']:
                 files.append('lunr.stemmer.support.js')
-            if len(self.config.lang) > 1:
+            if len(self.config['lang']) > 1:
                 files.append('lunr.multi.js')
-            if 'ja' in self.config.lang or 'jp' in self.config.lang:
+            if 'ja' in self.config['lang'] or 'jp' in self.config['lang']:
                 files.append('tinyseg.js')
-            for lang in self.config.lang:
+            for lang in self.config['lang']:
                 if lang != 'en':
                     files.append(f'lunr.{lang}.js')
 
