@@ -7,7 +7,6 @@ from typing import Any, Dict, List
 from mkdocs import utils
 from mkdocs.config import base
 from mkdocs.config import config_options as c
-from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.contrib.search.search_index import SearchIndex
 from mkdocs.plugins import BasePlugin
 
@@ -15,7 +14,7 @@ log = logging.getLogger(__name__)
 base_path = os.path.dirname(os.path.abspath(__file__))
 
 
-class LangOption(c.OptionallyRequired[List[str]]):
+class LangOption(c.OptionallyRequired):
     """Validate Language(s) provided in config are known languages."""
 
     def get_lunr_supported_lang(self, lang):
@@ -47,17 +46,17 @@ class LangOption(c.OptionallyRequired[List[str]]):
 
 
 class _PluginConfig(base.Config):
-    lang = c.Optional(LangOption())
+    lang = c.OptionallyRequired(LangOption())
     separator = c.Type(str, default=r'[\s\-]+')
     min_search_length = c.Type(int, default=3)
     prebuild_index = c.Choice((False, True, 'node', 'python'), default=False)
     indexing = c.Choice(('full', 'sections', 'titles'), default='full')
 
 
-class SearchPlugin(BasePlugin[_PluginConfig]):
+class SearchPlugin(BasePlugin):
     """Add a search feature to MkDocs."""
 
-    def on_config(self, config: MkDocsConfig, **kwargs) -> MkDocsConfig:
+    def on_config(self, config, **kwargs) -> Any:
         "Add plugin templates and scripts to config."
         if 'include_search_page' in config.theme and config.theme['include_search_page']:
             config.theme.static_templates.add('search.html')
@@ -79,7 +78,7 @@ class SearchPlugin(BasePlugin[_PluginConfig]):
             )
         return config
 
-    def on_pre_build(self, config: MkDocsConfig, **kwargs) -> None:
+    def on_pre_build(self, config, **kwargs) -> None:
         "Create search index instance for later use."
         self.search_index = SearchIndex(**self.config)
 
@@ -87,7 +86,7 @@ class SearchPlugin(BasePlugin[_PluginConfig]):
         "Add page to search index."
         self.search_index.add_entry_from_context(context['page'])
 
-    def on_post_build(self, config: MkDocsConfig, **kwargs) -> None:
+    def on_post_build(self, config, **kwargs) -> None:
         "Build search index."
         output_base_path = os.path.join(config.site_dir, 'search')
         search_index = self.search_index.generate_search_index()
