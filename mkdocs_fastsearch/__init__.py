@@ -58,24 +58,14 @@ class SearchPlugin(BasePlugin):
 
     def on_config(self, config, **kwargs) -> Any:
         "Add plugin templates and scripts to config."
-        if 'include_search_page' in config.theme and config.theme['include_search_page']:
-            config.theme.static_templates.add('search.html')
-        if not ('search_index_only' in config.theme and config.theme['search_index_only']):
+        if 'include_search_page' in config['theme'] and config['theme']['include_search_page']:
+            config['theme'].static_templates.add('search.html')
+        if not ('search_index_only' in config['theme'] and config['theme']['include_search_page']):
             path = os.path.join(base_path, 'templates')
-            config.theme.dirs.append(path)
+            config['theme'].dirs.append(path)
             if 'search/main.js' not in config.extra_javascript:
-                config.extra_javascript.append('search/main.js')
-        if self.config.lang is None:
-            # lang setting undefined. Set default based on theme locale
-            validate = _PluginConfig.lang.run_validation
-            self.config.lang = validate(config.theme['locale'].language)
-        # The `python` method of `prebuild_index` is pending deprecation as of version 1.2.
-        # TODO: Raise a deprecation warning in a future release (1.3?).
-        if self.config.prebuild_index == 'python':
-            log.info(
-                "The 'python' method of the search plugin's 'prebuild_index' config option "
-                "is pending deprecation and will not be supported in a future release."
-            )
+                 config['extra_javascript'].append('search/main.js')
+        
         return config
 
     def on_pre_build(self, config, **kwargs) -> None:
